@@ -15,7 +15,7 @@ import play.api.libs.json.{JsError, JsSuccess, Json, Reads}
 import play.api.libs.json.JsValue
 import play.api.libs.json.JsObject
 
-import models.{Usuario,Jugador}
+import models.{Usuario,Jugador,PartidoParser}
 import play.api.libs.json.JsResult
 import akka.actor
 
@@ -37,7 +37,7 @@ class HomeController @Inject()(cc: ControllerComponents,db: APIDatabase)(implici
    * a path of `/`.
    */
   def index() = Action { implicit request: Request[AnyContent] =>
-    Ok("Building Back-End App")
+    Ok("Welcome to Back-end App")
   }
 
 
@@ -72,6 +72,13 @@ class HomeController @Inject()(cc: ControllerComponents,db: APIDatabase)(implici
       withRequestBody[Jugador] { 
          jg =>  
          db.registrarJugador(jg).map(Ok(_)) 
+      }
+  } 
+
+  def registrarPartido() = Action.async { implicit request =>
+      withRequestBody[PartidoParser] { 
+         pd =>  
+         db.registrarPartido(pd).map(Ok(_)) 
       }
   } 
 

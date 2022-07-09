@@ -12,6 +12,7 @@ import scala.concurrent.Future
 import models.{Usuario,Jugador}
 
 import handlers.ErrorHandler._
+import models.PartidoParser
 
 @Singleton
 class APIDatabase @Inject()(db: Database, dbec: DatabaseExecutionContext){
@@ -29,6 +30,37 @@ class APIDatabase @Inject()(db: Database, dbec: DatabaseExecutionContext){
                 demo 
             }
         }(dbec)
+    }
+
+
+    def registrarPartido(pd: PartidoParser): Future[JsObject] = {
+      Future {
+        db.withConnection{ conn =>
+                    try{
+                         val stm = conn.createStatement()
+
+                         val id_organizador = pd.id_organizador
+                         val id_centro_deportivo = pd.id_centro_deportivo
+                         val id_status_partido = pd.id_status_partido
+                         val id_tipo_partido = pd.id_tipo_partido
+                         val gasto_total_soles = pd.gasto_total_soles
+                         val fecha_partido = pd.fecha_partido
+
+                         val query = s"INSERT INTO partido(id_organizador,id_centro_deportivo,fecha_partido,id_status_partido,gasto_total_soles,id_tipo_partido) VALUES($id_organizador,$id_centro_deportivo,'$fecha_partido',$id_status_partido,'$gasto_total_soles',$id_tipo_partido) RETURNING id_partido;"
+                         
+                         val rs = stm.executeQuery(query)
+                         rs.next()
+                         Json.obj("id_partido"->rs.getInt("id_partido"))
+                    } catch {
+                         case e: Throwable => 
+                         println(e.getMessage())   
+                         getErrorObj("UnKnown")                 
+                    } 
+                    finally {
+                        conn.close()
+                    }
+        }
+      }(dbec)
     }
 
     def registrarUsuario(usu: Usuario): Future[JsObject] = {
